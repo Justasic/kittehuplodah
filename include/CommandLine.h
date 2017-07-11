@@ -22,5 +22,6 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <map>
 
-extern std::vector<std::string> ProcessArgs(int argc, char **argv);
+extern std::map<std::string, std::string> ProcessArgs(int argc, char **argv);

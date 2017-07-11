@@ -32,7 +32,7 @@ SET(PROJECT_PATCH_LEVEL 0)
 # Cmake module path (if exists)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 # include our function checks
-include(systemfuncs)
+#include(systemfuncs)
 
 # Get the git revision location for the branch we're on
 if(EXISTS "${CMAKE_SOURCE_DIR}/.git/HEAD")

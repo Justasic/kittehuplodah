@@ -20,3 +20,15 @@
  * THE SOFTWARE.
  */
 #pragma once
+#include <string>
+
+class Config
+{
+public:
+	Config(const std::string &ConfigFile);
+	~Config();
+
+	const std::string ConfigFile;
+
+	std::string uploader;
+};

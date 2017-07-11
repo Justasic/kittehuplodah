@@ -20,3 +20,37 @@
  * THE SOFTWARE.
  */
 #pragma once
+#include "tinyformat.h"
+
+class BasicException : public std::exception
+{
+protected:
+	const std::string err;
+public:
+	BasicException(const std::string &message) : err(message) {}
+
+	// Formatted constructor for ease of use,
+	template<typename... Args> BasicException(const std::string &message, const Args&... args) : err(tfm::format(message, args...)) { }
+
+	virtual ~BasicException() throw() { };
+
+	virtual const char* what() const noexcept
+	{
+		return this->err.c_str();
+	}
+};
+
+class ConfigException : public BasicException
+{
+public:
+	ConfigException(const std::string &err) : BasicException(err) { }
+	template<typename... Args> ConfigException(const std::string &message, const Args&... args) : BasicException(message, args...) { }
+};
+
+class SocketException : public BasicException
+{
+public:
+	SocketException(const std::string &err) : BasicException(err) { }
+	template<typename... Args> SocketException(const std::string &message, const Args&... args) : BasicException(message, args...) { }
+
+};

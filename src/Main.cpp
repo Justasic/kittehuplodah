@@ -24,11 +24,16 @@
 #include <cstdlib>
 #include <unistd.h>
 #include "CommandLine.h"
+#include "Config.h"
 
 
 int main(int argc, char **argv)
 {
-	ProcessArgs(argc, argv);
+	std::map<std::string, std::string> args = ProcessArgs(argc, argv);
+
+	Config conf(args["config"]);
+
+
 
 	printf("Hello World!\n");
 	return EXIT_SUCCESS;

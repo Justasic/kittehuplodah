@@ -19,3 +19,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#include <unistd.h>
+#include "Config.h"
+#include "Exceptions.h"
+#include "inih/INIReader.h"
+
+Config::Config(const std::string &cf) : ConfigFile(cf)
+{
+	INIReader reader(cf);
+
+	if (reader.ParseError() < 0)
+		throw ConfigException("There was an error reading config '%s'.", cf);
+
+	// Parse everything!
+	this->uploader = reader.Get("default", "uploader", "\007UNKNOWN\007");
+
+	if (this->uploader == "\007UNKNOWN\007")
+		throw ConfigException("Cannot have unknown value for 'uploader' config option\n");
+}
+
+Config::~Config()
+{
+
+}
