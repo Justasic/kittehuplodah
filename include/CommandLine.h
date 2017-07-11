@@ -19,17 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#pragma once
+#include <vector>
+#include <string>
 
-#include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
-#include "CommandLine.h"
-
-
-int main(int argc, char **argv)
-{
-	ProcessArgs(argc, argv);
-
-	printf("Hello World!\n");
-	return EXIT_SUCCESS;
-}
+extern std::vector<std::string> ProcessArgs(int argc, char **argv);

@@ -19,17 +19,4 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-#include <cstdio>
-#include <cstdlib>
-#include <unistd.h>
-#include "CommandLine.h"
-
-
-int main(int argc, char **argv)
-{
-	ProcessArgs(argc, argv);
-
-	printf("Hello World!\n");
-	return EXIT_SUCCESS;
-}
+#pragma once

@@ -196,6 +196,7 @@ check_cxx_source_compiles(
 # Make sure if the platform we're on requires libdl that we use it.
 find_library(LIBDL dl)
 find_library(LIBPTHREAD pthread)
+find_library(DOCOPT docopt)
 #find_library(CLANG_CXXABI c++abi)
 
 # Add our include directories
@@ -217,3 +218,9 @@ endif (LIBDL)
 if (LIBPTHREAD)
 	target_link_libraries(${PROJECT_NAME} ${LIBPTHREAD})
 endif (LIBPTHREAD)
+
+if (NOT DOCOPT)
+	message(FATAL_ERROR "docopt.cpp required to compile, you can find it at https://github.com/docopt/docopt.cpp")
+endif (NOT DOCOPT)
+
+target_link_libraries(${PROJECT_NAME} ${DOCOPT})
