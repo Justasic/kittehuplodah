@@ -61,7 +61,39 @@ endif(EXISTS "${GIT_SHA_PATH}")
 SET(VERSION_SIMPLE "${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_LEVEL}")
 SET(VERSION_FULL "${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_LEVEL}-${VERSION_GIT}")
 
-file(GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
+# A macro to recursively get source files, however if the source folder has
+# a CMakeLists.txt file, include it as part of the build instead.
+macro(GetSources SRC CPPSOURCES)
+	if(NOT ${SRC} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR} AND EXISTS "${SRC}/CMakeLists.txt")
+		# If we have a CMakeLists.txt file, include it instead of trying to compile
+		# sources as part of main project.
+		add_subdirectory("${SRC}")
+	else(NOT ${SRC} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR} AND EXISTS "${SRC}/CMakeLists.txt")
+		# get a list of all files in the directory.
+		file(GLOB SRC_FLDR "${SRC}/*")
+		foreach(SOURCEFILE ${SRC_FLDR})
+			# If it's a directory, recursively call this function.
+			if (IS_DIRECTORY "${SOURCEFILE}")
+				GetSources(${SOURCEFILE} ${CPPSOURCES})
+			else (IS_DIRECTORY "${SOURCEFILE}")
+				# Otherwise look for source files and append them.
+				# Look for C++ files.
+				string(REGEX MATCH "\\.cpp$" CPP ${SOURCEFILE})
+				if (CPP)
+					list(APPEND ${CPPSOURCES} ${SOURCEFILE})
+				endif (CPP)
+
+				# Look for C files.
+				string(REGEX MATCH "\\.c$" C ${SOURCEFILE})
+				if (C)
+					list(APPEND ${CPPSOURCES} ${SOURCEFILE})
+				endif (C)
+			endif (IS_DIRECTORY "${SOURCEFILE}")
+		endforeach(SOURCEFILE ${SRC_FLDR})
+	endif(NOT ${SRC} STREQUAL ${CMAKE_CURRENT_SOURCE_DIR} AND EXISTS "${SRC}/CMakeLists.txt")
+endmacro(GetSources)
+
+GetSources("${CMAKE_CURRENT_SOURCE_DIR}/src" SOURCE_FILES)
 list(SORT SOURCE_FILES)
 
 # Find clang (if the system has it)
@@ -94,6 +126,13 @@ include (CheckCXXCompilerFlag)
 #check_cxx_compiler_flag(-std=c++11 HAVE_C11_FLAG)
 check_cxx_compiler_flag(-std=c++1z HAVE_CXX1Z_FLAG)
 set(CFLAGS "${CFLAGS} -g -Werror=implicit-function-declaration -Wall -Wextra -Wno-unused-parameter")
+
+if (NOT NO_CLANG)
+	# Because of C++17 being somewhat incomplete for clang/g++ we
+	# have to make clang use libc++ instead of glibc++
+	find_library(LIBCPP libc++ REQUIRED)
+	set(CFLAGS "${CFLAGS} -stdlib=libc++")
+endif (NOT NO_CLANG)
 
 if (NOT HAVE_CXX1Z_FLAG)
 	message(FATAL_ERROR "Your compiler (${CMAKE_C_COMPILER}) MUST support C++17. Try using CXX=<alternative compiler>")
@@ -196,8 +235,8 @@ check_cxx_source_compiles(
 # Make sure if the platform we're on requires libdl that we use it.
 find_library(LIBDL dl)
 find_library(LIBPTHREAD pthread)
-find_library(DOCOPT docopt)
-find_library(OpenSSL openssl REQUIRED)
+find_library(DOCOPT docopt REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 message(STATUS "Found OpenSSL ${OPENSSL_VERSION}")
 #find_library(CLANG_CXXABI c++abi)
@@ -212,15 +251,15 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX PREFIX "" SUFFIX "" LINK_FLAGS "${LINKFLAGS}")
 #set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
 #set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+if (NOT DOCOPT)
+	message(FATAL_ERROR "docopt.cpp required to compile, you can find it at https://github.com/docopt/docopt.cpp")
+endif (NOT DOCOPT)
+
+target_link_libraries(${PROJECT_NAME} ${DOCOPT} ${OPENSSL_LIBRARIES})
+
 if (LIBDL)
 	target_link_libraries(${PROJECT_NAME} ${LIBDL})
 endif (LIBDL)
 if (LIBPTHREAD)
 	target_link_libraries(${PROJECT_NAME} ${LIBPTHREAD})
 endif (LIBPTHREAD)
-
-if (NOT DOCOPT)
-	message(FATAL_ERROR "docopt.cpp required to compile, you can find it at https://github.com/docopt/docopt.cpp")
-endif (NOT DOCOPT)
-
-target_link_libraries(${PROJECT_NAME} ${DOCOPT} ${OPENSSL_LIBRARIES})
