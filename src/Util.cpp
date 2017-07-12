@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Justin Crawford and NamedKitten
+ * Copyright (c) 2017 Justin Crawford
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,27 +19,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
 #include <string>
+#include <map>
 
-// Class: Config
+// Function: DecodeURL
 //
 // Arguments:
-//  N/A
+//  url - A standard protocol url.
 //
 // Description:
-// This class parses the config file given to it's
-// constructor (read the Config.cpp for more on this)
-// and then places values read from the file into it's
-// class members to be access freely.
-class Config
+// takes in a URL (eg. https://api.teknik.io/v1/Upload) and
+// converts it into an associative map that is easier to use
+// in code elsewhere.
+std::map<std::string, std::string> DecodeURL(const std::string &url)
 {
-public:
-	Config(const std::string &ConfigFile);
-	~Config();
+	std::map<std::string, std::string> parts;
 
-	const std::string ConfigFile;
+	// First, find the :// part of the URL (eg http://)
+	size_t protppos = url.find("://");
+	if (protppos == std::string::npos)
+		return parts;
+	// Next find the next slash after ://.
+	size_t hostpos  = url.substr(protppos+3).find("/");
+	if (protppos == std::string::npos)
+		return parts;
 
-	std::string uploader;
-	std::string uploadurl;
-};
+
+	parts["protocol"] = url.substr(0, protppos);
+	parts["hostname"] = url.substr(protppos+3, hostpos);
+	parts["path"]     = url.substr(hostpos+1);
+
+	return parts;
+}

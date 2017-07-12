@@ -25,6 +25,14 @@
 #include "Exceptions.h"
 #include "inih/INIReader.h"
 
+// Constructor: Config class
+//
+// Arguments:
+//  cf - Config File location (relative or absolute path)
+//
+// Description:
+// Opens and reads the config file then places parsed values into
+// the class's members.
 Config::Config(const std::string &cf) : ConfigFile(cf)
 {
 	INIReader reader(cf);
@@ -37,6 +45,11 @@ Config::Config(const std::string &cf) : ConfigFile(cf)
 
 	if (this->uploader == "\007UNKNOWN\007")
 		throw ConfigException("Cannot have unknown value for 'uploader' config option\n");
+
+	this->uploadurl = reader.Get(this->uploader, "url", "\007UNKNOWN\007");
+
+	if (this->uploadurl == "\007UNKNOWN\007")
+		throw ConfigException("Cannot have unknown value for 'url' config option\n");
 }
 
 Config::~Config()

@@ -61,8 +61,6 @@ endif(EXISTS "${GIT_SHA_PATH}")
 SET(VERSION_SIMPLE "${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_LEVEL}")
 SET(VERSION_FULL "${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT_PATCH_LEVEL}-${VERSION_GIT}")
 
-message(STATUS "${PROJECT_NAME} version: ${VERSION_FULL}")
-
 file(GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "src/*.cpp")
 list(SORT SOURCE_FILES)
 
@@ -87,6 +85,8 @@ endif (NOT NO_CLANG)
 # Finally initialize our project
 project(kittehuplodah CXX)
 enable_language(C)
+
+message(STATUS "${PROJECT_NAME} version: ${VERSION_FULL}")
 
 include (CheckCXXCompilerFlag)
 
@@ -197,18 +197,18 @@ check_cxx_source_compiles(
 find_library(LIBDL dl)
 find_library(LIBPTHREAD pthread)
 find_library(DOCOPT docopt)
-#find_library(CLANG_CXXABI c++abi)
+find_library(OpenSSL openssl REQUIRED)
 
-# Add our include directories
-include_directories(${CMAKE_SOURCE_DIR}/include ${MYSQL_INCLUDE_DIR} ${FastCGI_INCLUDE_DIR})
+message(STATUS "Found OpenSSL ${OPENSSL_VERSION}")
+#find_library(CLANG_CXXABI c++abi)
 
 # Configuration file and include the binary directory
 configure_file(${CMAKE_SOURCE_DIR}/cmake/sysconf.h.cmake ${CMAKE_BINARY_DIR}/sysconf.h)
-include_directories(${CMAKE_BINARY_DIR})
-
+# Add our include directories
+include_directories(${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/include ${OPENSSL_INCLUDE_DIR})
 
 # Finally, tell CMake how to build the project
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${FLEX_LEXER_OUTPUTS} ${BISON_PARSER_OUTPUTS})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX PREFIX "" SUFFIX "" LINK_FLAGS "${LINKFLAGS}")
 #set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
 #set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
@@ -223,4 +223,4 @@ if (NOT DOCOPT)
 	message(FATAL_ERROR "docopt.cpp required to compile, you can find it at https://github.com/docopt/docopt.cpp")
 endif (NOT DOCOPT)
 
-target_link_libraries(${PROJECT_NAME} ${DOCOPT})
+target_link_libraries(${PROJECT_NAME} ${DOCOPT} ${OPENSSL_LIBRARIES})

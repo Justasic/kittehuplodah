@@ -108,6 +108,14 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.)"
 };
 
+// Function: PrintLicense
+//
+// Arguments:
+//  <None>
+//
+// Description:
+// Prints the license for the project as well as licenses of any libraries
+// used to ensure that the project follows said licenses.
 static inline void PrintLicense()
 {
 	tfm::printf("The following licenses are for the application and libraries the application uses:\n");
@@ -117,6 +125,16 @@ static inline void PrintLicense()
 	exit(EXIT_SUCCESS);
 }
 
+// Function: ProcessArgs
+//
+// Arguments:
+//  argc - argc from int main.
+//  argv - argv from int main.
+//
+// Description:
+// Reads the command line options given from int main and processes
+// their values. It will set global application options as well as
+// print information such as help or licenses.
 std::map<std::string, std::string> ProcessArgs(int argc, char **argv)
 {
 	std::map<std::string, std::string> parsed;

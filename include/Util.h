@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Justin Crawford and NamedKitten
+ * Copyright (c) 2017 Justin Crawford
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -19,27 +19,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#pragma once
-#include <string>
 
-// Class: Config
+#include <cstring>
+#include <cstdlib>
+#include <map>
+#include "tinyformat.h"
+
+// Function: memdup
 //
 // Arguments:
-//  N/A
+//  data - data to copy
+//  len  - size of data.
 //
 // Description:
-// This class parses the config file given to it's
-// constructor (read the Config.cpp for more on this)
-// and then places values read from the file into it's
-// class members to be access freely.
-class Config
+// allocates and duplicates a memory block.
+template<typename Y, typename T> T *memdup(Y *data, size_t len)
 {
-public:
-	Config(const std::string &ConfigFile);
-	~Config();
+	void *ndata = malloc(len);
+	memcpy(ndata, reinterpret_cast<void*>(data), len);
+	return reinterpret_cast<T*>(ndata);
+}
 
-	const std::string ConfigFile;
+// The quick version of above.
+template<typename Y, typename T> T *quickmemdup(Y *data)
+{
+ return memdup<T*>(data, sizeof(Y));
+}
 
-	std::string uploader;
-	std::string uploadurl;
-};
+extern std::map<std::string, std::string> DecodeURL(const std::string &url);
