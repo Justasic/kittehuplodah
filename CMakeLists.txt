@@ -151,6 +151,7 @@ include (CheckIncludeFile)
 include (CheckLibraryExists)
 include (CheckFunctionExists)
 include (CheckCXXSourceCompiles)
+include (ExternalProject)
 
 check_type_size(int8_t HAVE_INT8_T)
 check_type_size(uint8_t HAVE_UINT8_T)
@@ -232,10 +233,41 @@ check_cxx_source_compiles(
   }"
   HAS_CXXABI_H)
 
+# https://stackoverflow.com/questions/33036333/docopt-linker-error-for-example-program
+set(DOCOPT_ROOT ${CMAKE_BINARY_DIR}/external/docopt)
+set(DOCOPT_INCLUDE_DIRS ${DOCOPT_ROOT}/include/docopt)
+set(DOCOPT_LIBRARIES ${DOCOPT_ROOT}/libdocopt.a)
+set(docopt_INSTALL_DIR "${DOCOPT_ROOT}")
+set(docopt_CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_INSTALL_PREFIX=${docopt_INSTALL_DIR})
+set(docopt_CXX_FLAGS -std=c++1z)
+if (NOT NO_CLANG)
+	set (docopt_CXX_FLAGS -stdlib=libc++)
+endif (NOT NO_CLANG)
+set(docopt_CMAKE_ARGS ${docopt_CMAKE_ARGS} -DCMAKE_CXX_FLAGS=${docopt_CXX_FLAGS})
+
+ExternalProject_Add(docopt
+  PREFIX ${DOCOPT_ROOT}
+  GIT_REPOSITORY https://github.com/docopt/docopt.cpp.git
+  BINARY_DIR ${DOCOPT_ROOT}
+  INSTALL_DIR ${DOCOPT_ROOT}
+  CMAKE_ARGS ${docopt_CMAKE_ARGS}
+  LOG_DOWNLOAD ON
+  LOG_CONFIGURE ON
+  LOG_BUILD ON
+  LOG_INSTALL ON
+)
+add_library(libdocopt STATIC IMPORTED)
+set_target_properties(libdocopt PROPERTIES IMPORTED_LOCATION ${DOCOPT_LIBRARIES})
+add_dependencies(libdocopt docopt)
+
+include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${DOCOPT_INCLUDE_DIRS})
+
+
 # Make sure if the platform we're on requires libdl that we use it.
 find_library(LIBDL dl)
 find_library(LIBPTHREAD pthread)
-find_library(DOCOPT docopt REQUIRED)
+#find_library(DOCOPT docopt REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 message(STATUS "Found OpenSSL ${OPENSSL_VERSION}")
@@ -251,11 +283,11 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX PREFIX "" SUFFIX "" LINK_FLAGS "${LINKFLAGS}")
 #set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
 #set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-if (NOT DOCOPT)
-	message(FATAL_ERROR "docopt.cpp required to compile, you can find it at https://github.com/docopt/docopt.cpp")
-endif (NOT DOCOPT)
+#if (NOT DOCOPT)
+#	message(FATAL_ERROR "docopt.cpp required to compile, you can find it at https://github.com/docopt/docopt.cpp")
+#endif (NOT DOCOPT)
 
-target_link_libraries(${PROJECT_NAME} ${DOCOPT} ${OPENSSL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} libdocopt)
 
 if (LIBDL)
 	target_link_libraries(${PROJECT_NAME} ${LIBDL})
